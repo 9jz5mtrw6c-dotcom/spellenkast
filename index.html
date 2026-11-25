@@ -356,6 +356,17 @@ input{border:1px solid var(--line);border-radius:13px;background:var(--panel2)}
 .ebar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px}
 .ebar .ib{width:auto;padding:0 12px;font-size:14px}
 .ebar .ib:first-child{font-size:20px}
+/* toegang */
+.gate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:radial-gradient(120% 90% at 70% 10%,#1a7690 0%,#0e5a73 45%,#0a4253 100%);overflow:auto}
+.gatebox{width:min(400px,100%);background:var(--panel,#fff);color:var(--ink,#1f2a2e);border-radius:22px;padding:24px 20px;display:grid;gap:10px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.gatebox h1{font-size:40px;margin:0}
+.gatebox .brandmark{width:36px;height:36px}
+.gatedis{margin:0;padding:12px 14px;border-radius:14px;background:var(--panel2,#f3ead6);font-weight:700;font-size:15px;line-height:1.45}
+.gerr{margin:0;min-height:20px;color:#c9431d;font-weight:800;font-size:14px}
+.gchk{display:flex;gap:10px;align-items:flex-start;font-size:15px;font-weight:700}
+.gchk input{width:22px;height:22px;min-height:0;flex:none;margin-top:1px}
+.disc{margin:24px 0 8px;text-align:center;font-size:13px;color:var(--mute)}
+.lockbtn{margin-top:8px;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--mute)}
 </style>
 </head>
 <body>
@@ -2104,7 +2115,7 @@ function heroArt(){
 function vHub(){
  return `<header class="hero"><div class="wrap"><div class="brandline"><span class="brandmark">✦</span><span>DE SPEELKAMER</span><span class="brandpill">${CATALOG.length} spellen</span></div><div class="herocopy"><div><span class="eyebrow">SAMEN SPELEN IS LEUKER</span><h1>Spelkast<span>.</span></h1><p>Schuif aan, kies een spel en maak er een mooie speelronde van.</p></div><div class="heroart">${heroArt()}</div></div><div class="herofoot"><span>♟ 2–4 spelers</span><span>✦ Direct spelen</span><span>♥ Voor iedereen</span></div></div></header>
  <main class="wrap hubmain"><div class="sectionintro"><div><span class="eyebrow">KIES JE SPEL</span><h2>Wat gaan we spelen?</h2></div><span class="sectionhint">De spellenkast</span></div><div class="games">${(()=>{const o=opens();return sortedCatalog().map(g=>`<button class="gcard" data-a="open" data-v="${g.id}">${g.emb?embIcon(g):UIS[g.id].icon()}<div><h2>${esc(g.name)}</h2><p>${esc(g.desc)}</p><span class="tag">${(o[g.id]||0)>=5?'Vaak gespeeld · ':''}${esc(g.meta)} · Spelen</span></div></button>`).join('')})()}
- <div class="gcard soon"><svg viewBox="-1.1 -1.1 2.2 2.2"><polygon points="${hexPts(0,0,1)}" fill="none" stroke="currentColor" stroke-width=".06" stroke-dasharray=".15 .1" opacity=".5"/><text y=".2" text-anchor="middle" font-size=".7" font-weight="800" fill="currentColor" opacity=".5">+</text></svg><div><h2>Volgend spel</h2><p>Hier komt het volgende spel in de kast.</p><span class="tag muted">Binnenkort</span></div></div></div></main>`;
+ <div class="gcard soon"><svg viewBox="-1.1 -1.1 2.2 2.2"><polygon points="${hexPts(0,0,1)}" fill="none" stroke="currentColor" stroke-width=".06" stroke-dasharray=".15 .1" opacity=".5"/><text y=".2" text-anchor="middle" font-size=".7" font-weight="800" fill="currentColor" opacity=".5">+</text></svg><div><h2>Volgend spel</h2><p>Hier komt het volgende spel in de kast.</p><span class="tag muted">Binnenkort</span></div></div></div><p class="disc">${esc(DISCLAIMER)}<br><button class="lockbtn" data-a="lock">Dit toestel vergrendelen</button></p></main>`;
 }
 /* ---------- menu per spel ---------- */
 function vMenu(){
@@ -2276,6 +2287,7 @@ app.addEventListener('click',e=>{
  if(a==='closeOv'&&e.target!==b)return;
  switch(a){
  case 'home':go('');return;
+ case 'lock':ls.del('spelkast-toegang');location.hash='';location.reload();return;
  case 'open':if(view==='hub')countOpen(v);if(gid===v&&view==='localSetup')view='menu';go(v);return;
  case 'sheet':sheet=v;render();return;
  case 'close':case 'closeOv':sheet=(S&&S.status==='over'&&view==='game')?'closedOver':null;render();return;
@@ -2806,9 +2818,44 @@ function countOpen(id){const o=opens();o[id]=(o[id]||0)+1;ls.set('spelkast-opens
 function sortedCatalog(){const o=opens();const fav=c=>(o[c.id]||0)>=5;
  return CATALOG.slice().sort((a,b)=>{const fa=fav(a),fb=fav(b);if(fa!==fb)return fa?-1:1;if(fa&&o[b.id]!==o[a.id])return o[b.id]-o[a.id];return a.name.localeCompare(b.name,'nl',{sensitivity:'base'})})}
 const embIcon=g=>`<svg viewBox="0 0 104 104" aria-hidden="true"><rect x="6" y="6" width="92" height="92" rx="24" fill="${g.emb.kids?'#fde3ec':'#dfe9f6'}"/><text x="52" y="70" text-anchor="middle" font-size="50">${g.emb.icon}</text></svg>`;
+/* ---------- toegang: eenmalig wachtwoord per toestel + disclaimer ---------- */
+const GATE_HASH='0361a0e11bf33a5b86c086a865da1b183bf2e71a28a676dc9482565b92b9f056';
+const DISCLAIMER='Spelkast is een hobbyproject, alleen bedoeld voor eigen gebruik. Niet verspreiden of delen met anderen zonder toestemming van de maker.';
+function sha256hex(str){
+ // kleine SHA-256 (werkt ook waar crypto.subtle ontbreekt)
+ const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+ const b=new TextEncoder().encode(str),l=b.length,n=((l+9+63)>>6)<<6,m=new Uint8Array(n);m.set(b);m[l]=0x80;
+ const dv=new DataView(m.buffer);dv.setUint32(n-4,l*8);let h=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+ const r=(x,y)=>(x>>>y)|(x<<(32-y)),w=new Array(64);
+ for(let o=0;o<n;o+=64){for(let i=0;i<16;i++)w[i]=dv.getUint32(o+i*4);
+  for(let i=16;i<64;i++){const s0=r(w[i-15],7)^r(w[i-15],18)^(w[i-15]>>>3),s1=r(w[i-2],17)^r(w[i-2],19)^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0}
+  let [a,bb,c,d,e,f,g,hh]=h;
+  for(let i=0;i<64;i++){const t1=(hh+(r(e,6)^r(e,11)^r(e,25))+((e&f)^(~e&g))+K[i]+w[i])|0,t2=((r(a,2)^r(a,13)^r(a,22))+((a&bb)^(a&c)^(bb&c)))|0;hh=g;g=f;f=e;e=(d+t1)|0;d=c;c=bb;bb=a;a=(t1+t2)|0}
+  h=[h[0]+a|0,h[1]+bb|0,h[2]+c|0,h[3]+d|0,h[4]+e|0,h[5]+f|0,h[6]+g|0,h[7]+hh|0]}
+ return h.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('');
+}
+function gateOpen(){return ls.get('spelkast-toegang')===GATE_HASH}
+function gateThen(start){
+ if(gateOpen()){start();return}
+ const ov=document.createElement('div');ov.className='gate';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','Toegang tot de Spelkast');
+ ov.innerHTML=`<form class="gatebox" autocomplete="off"><span class="brandmark">✦</span><h1>Spelkast</h1>
+ <p class="gatedis">${esc(DISCLAIMER)}</p>
+ <label class="lbl" for="gpw">Wachtwoord</label><input id="gpw" type="password" autocomplete="current-password" enterkeyhint="go" required>
+ <p class="gerr" aria-live="polite"></p>
+ <label class="gchk"><input type="checkbox" id="gok"> Ik begrijp dat dit alleen voor eigen gebruik is</label>
+ <button class="btn" type="submit">Naar de Spelkast</button>
+ <p class="note">Je hoeft het wachtwoord maar één keer per toestel in te voeren.</p></form>`;
+ document.body.appendChild(ov);app.setAttribute('aria-hidden','true');
+ const f=ov.querySelector('form'),pw=ov.querySelector('#gpw'),err=ov.querySelector('.gerr');
+ setTimeout(()=>{try{pw.focus()}catch(e){}},50);
+ f.addEventListener('submit',e=>{e.preventDefault();
+  if(!ov.querySelector('#gok').checked){err.textContent='Vink eerst aan dat je de afspraak begrijpt.';return}
+  if(sha256hex('spelkast:'+pw.value)!==GATE_HASH){err.textContent='Dat wachtwoord klopt niet.';pw.select();return}
+  ls.set('spelkast-toegang',GATE_HASH);ov.remove();app.removeAttribute('aria-hidden');start()});
+}
 
-window.addEventListener('hashchange',route);
-route();
+window.addEventListener('hashchange',()=>{if(gateOpen())route()});
+gateThen(route);
 (async()=>{try{const c=window.claude;if(c&&c.use)c.use('room').then(r=>{room=r;if(r&&code&&mode==='online')joinRoom(code)}).catch(()=>{});db=c&&c.use?await c.use('db'):null}catch(e){db=null}dbState=db?'ok':'none';if(view==='menu')render()})();
 }
 </script>
